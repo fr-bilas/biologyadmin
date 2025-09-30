@@ -5,49 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>EduPlay — Admin Panel</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  
-  <!-- Firebase SDK -->
-  <script type="module">
-      // Import the functions you need from the SDKs you need
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-      import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
-      import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-      import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-      // Your web app's Firebase configuration
-      const firebaseConfig = {
-          apiKey: "AIzaSyDwIuLPaDRwMf8E2LdOkzcSUrdxOuSGkPw",
-          authDomain: "biology-64aef.firebaseapp.com",
-          projectId: "biology-64aef",
-          storageBucket: "biology-64aef.firebasestorage.app",
-          messagingSenderId: "473297240489",
-          appId: "1:473297240489:web:f3d4d1d296a70a517b04b8",
-          measurementId: "G-9XJ6340K12"
-      };
-
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(app);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
-
-      // Make Firebase available globally
-      window.firebase = {
-          auth: auth,
-          db: db,
-          onAuthStateChanged: onAuthStateChanged,
-          signOut: signOut,
-          collection: collection,
-          addDoc: addDoc,
-          getDocs: getDocs,
-          doc: doc,
-          setDoc: setDoc,
-          deleteDoc: deleteDoc,
-          updateDoc: updateDoc
-      };
-  </script>
-
   <style>
+    /* তোমার আগের CSS একই রাখা হয়েছে */
     :root{--bg:#0b1020;--card:#0f1724;--muted:#94a3b8;--accent:#2563eb;--danger:#ef4444;--success:#10b981}
     *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
     body{margin:0;background:linear-gradient(180deg,#071023 0%, #071324 100%);color:#e6eef8}
@@ -57,28 +16,22 @@
     .nav-btn{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);padding:8px 12px;border-radius:8px;cursor:pointer;transition:all .2s}
     .nav-btn:hover{color:#fff;border-color:var(--accent)}
     .nav-btn.active{background:linear-gradient(90deg,var(--accent),#7c3aed);color:white;border:none;box-shadow:0 6px 20px rgba(37,99,235,0.12)}
-
     .grid{display:grid;grid-template-columns:260px 1fr;gap:16px}
     .panel{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border:1px solid rgba(255,255,255,0.03);padding:14px;border-radius:10px}
     .small{font-size:13px;color:var(--muted)}
-
     .btn{background:var(--accent);border:none;color:white;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:13px;transition:.2s}
     .btn:hover{opacity:.9}
     .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
     .btn.danger{background:var(--danger)}
-
     .list{max-height:500px;overflow:auto}
     table{width:100%;border-collapse:collapse}
     th,td{padding:8px;text-align:left;border-bottom:1px dashed rgba(255,255,255,0.06);font-size:13px}
     .pill{display:inline-block;padding:3px 8px;border-radius:999px;font-weight:600;font-size:12px}
     .pill.pending{background:rgba(255,255,255,0.05);color:var(--muted)}
     .pill.approved{background:rgba(16,185,129,0.12);color:var(--success)}
-
     .resource{padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
-
     .modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,0.7);display:none;align-items:center;justify-content:center;z-index:999}
     .modal{background:var(--card);padding:16px;border-radius:10px;max-width:640px;width:94%}
-
     footer{margin-top:12px;color:var(--muted);font-size:13px;text-align:center}
   </style>
 </head>
@@ -86,10 +39,6 @@
   <div class="wrap">
     <header>
       <h1><i class="fas fa-cog"></i> Admin Panel — EduPlay</h1>
-      <div>
-        <button id="exportBtn" class="nav-btn">Export</button>
-        <button id="importBtn" class="nav-btn">Import</button>
-      </div>
     </header>
 
     <div class="grid">
@@ -132,81 +81,163 @@
           <div id="routineList" style="margin-top:10px"></div>
         </section>
 
-        <footer>Admin panel saves data locally (localStorage). For production connect these actions to your backend (Firebase / server).</footer>
+        <footer>Connected with Firebase Firestore & Functions</footer>
       </main>
     </div>
   </div>
 
   <div id="modal" class="modal-backdrop"><div class="modal"><div id="modalContent"></div><button id="modalClose" class="btn ghost">Close</button></div></div>
 
-  <script>
-    const STORAGE_KEY='eduplay_state';
-    let state=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
-    if(!state.users) state={users:[
-      {id:'u1',name:'Rahim',email:'rahim@example.com',status:'pending'},
-      {id:'u2',name:'Karim',mobile:'01700000000',status:'pending'},
-      {id:'u3',name:'Anika',email:'anika@example.com',status:'pending'},
-      {id:'u4',name:'Jamil',email:'jamil@example.com',status:'pending'},
-      {id:'u5',name:'Sara',mobile:'01800000000',status:'pending'}
-    ],chapters:['Uncategorized','Web Development','React JS','Python'],videos:[],live:[],routine:[]};
-    const save=()=>localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+  <!-- Firebase Integration -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-functions.js";
 
-    function switchSection(id){document.querySelectorAll('.section').forEach(s=>s.style.display='none');document.getElementById(id).style.display='block';document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.querySelector(`.nav-btn[data-section="${id}"]`).classList.add('active')}
+    const firebaseConfig = {
+      apiKey: "AIzaSyDwIuLPaDRwMf8E2LdOkzcSUrdxOuSGkPw",
+      authDomain: "biology-64aef.firebaseapp.com",
+      projectId: "biology-64aef",
+      storageBucket: "biology-64aef.firebasestorage.app",
+      messagingSenderId: "473297240489",
+      appId: "1:473297240489:web:f3d4d1d296a70a517b04b8",
+      measurementId: "G-9XJ6340K12"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const functions = getFunctions(app);
+
+    // Navigation
+    function switchSection(id){
+      document.querySelectorAll('.section').forEach(s=>s.style.display='none');
+      document.getElementById(id).style.display='block';
+      document.querySelectorAll('.nav-btn[data-section]').forEach(b=>b.classList.remove('active'));
+      document.querySelector(`.nav-btn[data-section="${id}"]`).classList.add('active');
+    }
     document.querySelectorAll('.nav-btn[data-section]').forEach(b=>b.onclick=()=>switchSection(b.dataset.section));
 
-    // Users
-    function renderUsers(filter=''){
-      const list=document.getElementById('usersList');list.innerHTML='';
-      let users=state.users;
-      if(filter) users=users.filter(u=>(u.email||u.mobile||'').toLowerCase().includes(filter));
-      if(!users.length){list.innerHTML='<div class="small">No users</div>';return}
+    /******** USERS ********/
+    async function loadUsers(filter=''){
+      const q = collection(db,'users');
+      const snap = await getDocs(q);
       let html='<table><tr><th>Name</th><th>Login</th><th>Status</th><th>Actions</th></tr>';
-      users.forEach(u=>{
-        html+=`<tr><td>${u.name||'-'}</td><td>${u.email||u.mobile||'-'}</td><td><span class="pill ${u.status}">${u.status||'pending'}</span></td><td><button class="btn" onclick="approveUser('${u.id}')">Approve</button> <button class="btn danger" onclick="deleteUser('${u.id}')">Delete</button></td></tr>`;
+      snap.forEach(d=>{
+        const u=d.data();
+        if(filter && !((u.email||u.phone||'').toLowerCase().includes(filter))) return;
+        html+=`<tr>
+          <td>${u.name||'-'}</td>
+          <td>${u.email||u.phone||'-'}</td>
+          <td><span class="pill ${u.approved?'approved':'pending'}">${u.approved?'approved':'pending'}</span></td>
+          <td>
+            <button class="btn" onclick="approveUser('${d.id}',${!u.approved})">${u.approved?'Revoke':'Approve'}</button>
+            <button class="btn danger" onclick="deleteUser('${d.id}')">Delete</button>
+          </td>
+        </tr>`;
       });
-      html+='</table>';list.innerHTML=html;
+      document.getElementById('usersList').innerHTML=html+'</table>';
     }
-    window.approveUser=function(id){const u=state.users.find(x=>x.id===id);if(u){u.status='approved';save();renderUsers();}}
-    window.deleteUser=function(id){if(confirm('Delete user?')){state.users=state.users.filter(x=>x.id!==id);save();renderUsers();}}
 
-    document.getElementById('refreshUsers').onclick=()=>renderUsers();
-    document.getElementById('userSearch').oninput=e=>renderUsers(e.target.value.toLowerCase());
+    window.approveUser=async(uid,approve)=>{
+      const fn=httpsCallable(functions,'approveUser');
+      await fn({uid,approve});
+      loadUsers();
+    };
+    window.deleteUser=async(uid)=>{
+      if(!confirm('Delete user?')) return;
+      const fn=httpsCallable(functions,'deleteUserAndData');
+      await fn({uid});
+      loadUsers();
+    };
+    document.getElementById('refreshUsers').onclick=()=>loadUsers();
+    document.getElementById('userSearch').oninput=e=>loadUsers(e.target.value.toLowerCase());
 
-    // Chapters
-    function renderChapters(){const div=document.getElementById('chaptersList');div.innerHTML='';state.chapters.forEach((c,i)=>{div.innerHTML+=`<div class="resource">${c}<div><button class="btn ghost" onclick="editChapter(${i})">Edit</button> <button class="btn danger" onclick="delChapter(${i})">Del</button></div></div>`});populateChapterSelect();}
-    window.editChapter=function(i){const n=prompt('Edit chapter',state.chapters[i]);if(n){state.chapters[i]=n;save();renderChapters();}}
-    window.delChapter=function(i){if(confirm('Delete chapter?')){state.chapters.splice(i,1);save();renderChapters();}}
-    document.getElementById('addChapter').onclick=()=>{const n=document.getElementById('chapterName').value;if(n){state.chapters.push(n);save();document.getElementById('chapterName').value='';renderChapters();}};
+    /******** CHAPTERS ********/
+    async function renderChapters(){
+      const snap=await getDocs(collection(db,'chapters'));
+      let html='';
+      snap.forEach(d=>{
+        const c=d.data();
+        html+=`<div class="resource">${c.title}
+          <div>
+            <button class="btn ghost" onclick="editChapter('${d.id}','${c.title}')">Edit</button>
+            <button class="btn danger" onclick="delChapter('${d.id}')">Del</button>
+          </div></div>`;
+      });
+      document.getElementById('chaptersList').innerHTML=html;
+      populateChapterSelect();
+    }
+    window.editChapter=async(id,old)=>{
+      const n=prompt('Edit chapter',old);
+      if(n){await updateDoc(doc(db,'chapters',id),{title:n});renderChapters();}
+    }
+    window.delChapter=async(id)=>{if(confirm('Delete?')){await deleteDoc(doc(db,'chapters',id));renderChapters();}}
+    document.getElementById('addChapter').onclick=async()=>{
+      const n=document.getElementById('chapterName').value;
+      if(n){await addDoc(collection(db,'chapters'),{title:n});document.getElementById('chapterName').value='';renderChapters();}
+    };
 
-    // Media
-    function populateChapterSelect(){const s=document.getElementById('mediaChapter');s.innerHTML='';state.chapters.forEach(c=>{s.innerHTML+=`<option>${c}</option>`})}
-    function renderMedia(){const div=document.getElementById('mediaList');div.innerHTML='';state.videos.forEach((v,i)=>{div.innerHTML+=`<div class=\"resource\"><div><strong>${v.title}</strong> <span class='small'>(${v.chapter})</span></div><div><button class=\"btn ghost\" onclick=\"playVideo(${i})\">Play</button> <button class=\"btn danger\" onclick=\"delVideo(${i})\">Del</button></div></div>`})}
-    window.playVideo=function(i){openModal(`<iframe width='100%' height='360' src='https://www.youtube.com/embed/${state.videos[i].youtube}' frameborder='0' allowfullscreen></iframe>`)}
-    window.delVideo=function(i){if(confirm('Delete video?')){state.videos.splice(i,1);save();renderMedia();}}
-    document.getElementById('addVideo').onclick=()=>{const t=document.getElementById('videoTitle').value,l=document.getElementById('videoLink').value,c=document.getElementById('mediaChapter').value;if(t&&l){state.videos.push({id:Date.now(),title:t,youtube:extractYouTubeId(l),chapter:c});save();document.getElementById('videoTitle').value='';document.getElementById('videoLink').value='';renderMedia();}};
+    /******** VIDEOS ********/
+    async function populateChapterSelect(){
+      const s=document.getElementById('mediaChapter');s.innerHTML='';
+      const snap=await getDocs(collection(db,'chapters'));
+      snap.forEach(d=>{s.innerHTML+=`<option value="${d.id}">${d.data().title}</option>`;});
+      renderMedia();
+    }
+    async function renderMedia(){
+      const snap=await getDocs(collection(db,'videos'));
+      let html='';
+      snap.forEach(d=>{
+        const v=d.data();
+        html+=`<div class="resource"><div><strong>${v.title}</strong></div>
+        <div><button class="btn danger" onclick="delVideo('${d.id}')">Del</button></div></div>`;
+      });
+      document.getElementById('mediaList').innerHTML=html;
+    }
+    document.getElementById('addVideo').onclick=async()=>{
+      const t=document.getElementById('videoTitle').value,l=document.getElementById('videoLink').value,c=document.getElementById('mediaChapter').value;
+      if(t&&l&&c){await addDoc(collection(db,'videos'),{title:t,youtubeLink:l,chapterId:c});renderMedia();}
+    }
+    window.delVideo=async(id)=>{if(confirm('Delete video?')){await deleteDoc(doc(db,'videos',id));renderMedia();}}
 
-    // Live
-    function renderLive(){const div=document.getElementById('liveList');div.innerHTML='';state.live.forEach((l,i)=>{div.innerHTML+=`<div class=\"resource\"><div><strong>${l.title}</strong> <span class='small'>${l.time}</span></div><div><button class=\"btn\" onclick=\\"window.open('${l.zoom}')\\">Join</button> <button class=\"btn danger\" onclick=\"delLive(${i})\">Del</button></div></div>`})}
-    window.delLive=function(i){if(confirm('Delete live class?')){state.live.splice(i,1);save();renderLive();}}
-    document.getElementById('addLive').onclick=()=>{const t=document.getElementById('liveTitle').value,tm=document.getElementById('liveTime').value,z=document.getElementById('liveZoom').value;if(t&&tm&&z){state.live.push({id:Date.now(),title:t,time:tm,zoom:z});save();document.getElementById('liveTitle').value='';document.getElementById('liveTime').value='';document.getElementById('liveZoom').value='';renderLive();}};
+    /******** LIVE CLASSES ********/
+    async function renderLive(){
+      const snap=await getDocs(collection(db,'liveClasses'));
+      let html='';
+      snap.forEach(d=>{
+        const l=d.data();
+        html+=`<div class="resource"><div><strong>${l.title}</strong> <span class="small">${l.time||''}</span></div>
+        <div><button class="btn danger" onclick="delLive('${d.id}')">Del</button></div></div>`;
+      });
+      document.getElementById('liveList').innerHTML=html;
+    }
+    document.getElementById('addLive').onclick=async()=>{
+      const t=document.getElementById('liveTitle').value,tm=document.getElementById('liveTime').value,z=document.getElementById('liveZoom').value;
+      if(t&&z){await addDoc(collection(db,'liveClasses'),{title:t,time:tm,zoomLink:z});renderLive();}
+    }
+    window.delLive=async(id)=>{if(confirm('Delete?')){await deleteDoc(doc(db,'liveClasses',id));renderLive();}}
 
-    // Routine
-    function renderRoutine(){const div=document.getElementById('routineList');div.innerHTML='';state.routine.forEach((r,i)=>{div.innerHTML+=`<div class=\"resource\"><div><strong>${r.day}</strong> <span class='small'>${r.time} - ${r.subject}</span></div><div><button class=\"btn danger\" onclick=\"delRoutine(${i})\">Del</button></div></div>`})}
-    window.delRoutine=function(i){if(confirm('Delete routine?')){state.routine.splice(i,1);save();renderRoutine();}}
-    document.getElementById('addRoutine').onclick=()=>{const d=document.getElementById('routineDay').value,t=document.getElementById('routineTime').value,s=document.getElementById('routineSubject').value;if(d&&t&&s){state.routine.push({id:Date.now(),day:d,time:t,subject:s});save();document.getElementById('routineDay').value='';document.getElementById('routineTime').value='';document.getElementById('routineSubject').value='';renderRoutine();}};
+    /******** ROUTINES ********/
+    async function renderRoutine(){
+      const snap=await getDocs(collection(db,'routines'));
+      let html='';
+      snap.forEach(d=>{
+        const r=d.data();
+        html+=`<div class="resource"><div><strong>${r.day}</strong> <span class="small">${r.time} - ${r.subject}</span></div>
+        <div><button class="btn danger" onclick="delRoutine('${d.id}')">Del</button></div></div>`;
+      });
+      document.getElementById('routineList').innerHTML=html;
+    }
+    document.getElementById('addRoutine').onclick=async()=>{
+      const d=document.getElementById('routineDay').value,t=document.getElementById('routineTime').value,s=document.getElementById('routineSubject').value;
+      if(d&&t&&s){await addDoc(collection(db,'routines'),{day:d,time:t,subject:s});renderRoutine();}
+    }
+    window.delRoutine=async(id)=>{if(confirm('Delete?')){await deleteDoc(doc(db,'routines',id));renderRoutine();}}
 
-    // Modal
-    const modal=document.getElementById('modal');const modalContent=document.getElementById('modalContent');document.getElementById('modalClose').onclick=()=>modal.style.display='none';
-    function openModal(html){modalContent.innerHTML=html;modal.style.display='flex'}
-
-    // Export/Import
-    document.getElementById('exportBtn').onclick=()=>{const a=document.createElement('a');a.href='data:application/json,'+encodeURIComponent(JSON.stringify(state));a.download='export.json';a.click()};
-    document.getElementById('importBtn').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='application/json';i.onchange=async e=>{const txt=await e.target.files[0].text();state=JSON.parse(txt);save();init()};i.click()};
-
-    function extractYouTubeId(url){try{let u=new URL(url);if(u.searchParams.get('v'))return u.searchParams.get('v');return u.pathname.split('/').pop()}catch{return url}}
-
-    function init(){renderUsers();renderChapters();renderMedia();renderLive();renderRoutine();populateChapterSelect()}
-    init();
+    // INIT
+    loadUsers();
+    renderChapters();
+    renderLive();
+    renderRoutine();
   </script>
 </body>
 </html>
